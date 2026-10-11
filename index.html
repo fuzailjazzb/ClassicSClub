@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Pocket Club – Carrom Only</title>
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Rajdhani:wght@500;600;700&display=swap">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <div id="app" v-cloak>
+    <div class="wrap">
+      <div class="fx" aria-hidden="true"><i v-for="(c,i) in fx" :key="i" :style="c"></i></div>
+      <header class="nav">
+        <b class="logo"><i></i>Pocket Club</b>
+        <nav><a href="#how">Club</a><a href="#faq">FAQ</a><a class="pill" href="#register">Register</a></nav>
+      </header>
+
+      <div class="hero">
+        <div>
+          <h1><span class="w" style="--d:.1s">One board.</span> <em class="w" style="--d:.35s">Four pockets.</em> <span
+              class="w" style="--d:.6s">No other game.</span></h1>
+          <p class="lead">Pocket Club is a carrom-only gaming zone. Weekly play nights, monthly tournaments and a
+            leaderboard for every level, from first-timers to club champions.</p>
+          <a class="btn" href="#register">Join the club</a>
+          <div class="stats">
+            <div v-for="s in stats" :key="s.l"><b>{{ s.v }}</b><span>{{ s.l }}</span></div>
+          </div>
+        </div>
+        <div class="stage">
+          <svg class="board" viewBox="0 0 400 400" role="img"
+            aria-label="Carrom board. Use the flick button to break the coins.">
+            <rect x="4" y="4" width="392" height="392" rx="18" fill="#7a4a22" />
+            <rect x="26" y="26" width="348" height="348" rx="8" fill="#e8c98e" />
+            <rect x="62" y="62" width="276" height="276" fill="none" stroke="#2a1a0c" stroke-width="2" />
+            <rect x="76" y="76" width="248" height="248" fill="none" stroke="#2a1a0c" />
+            <circle cx="40" cy="40" r="15" fill="#111" />
+            <circle cx="360" cy="40" r="15" fill="#111" />
+            <circle cx="40" cy="360" r="15" fill="#111" />
+            <circle cx="360" cy="360" r="15" fill="#111" />
+            <circle cx="78" cy="78" r="11" fill="none" stroke="#d62839" stroke-width="2.5" />
+            <circle cx="322" cy="78" r="11" fill="none" stroke="#d62839" stroke-width="2.5" />
+            <circle cx="78" cy="322" r="11" fill="none" stroke="#d62839" stroke-width="2.5" />
+            <circle cx="322" cy="322" r="11" fill="none" stroke="#d62839" stroke-width="2.5" />
+            <circle cx="200" cy="200" r="70" fill="none" stroke="#2a1a0c" stroke-width="1.5" />
+            <circle cx="200" cy="200" r="22" fill="none" stroke="#d62839" stroke-width="2.5" />
+            <g v-for="(c,i) in coins" :key="i" class="mv" :style="coinStyle(c)">
+              <circle r="9.5" :fill="c.c" stroke="#0006" />
+              <circle r="5" fill="none" stroke="#fff3" />
+            </g>
+            <g class="mv" :style="strikerStyle">
+              <circle r="14" fill="#f6f0e2" stroke="#0006" stroke-width="1.5" />
+              <circle r="8" fill="none" stroke="#d62839" stroke-width="2" />
+            </g>
+          </svg>
+          <div class="ctl">
+            <input type="range" min="100" max="300" v-model.number="sx" :disabled="flicked"
+              aria-label="Striker position">
+            <button class="btn small" type="button" @click="flick" :disabled="flicked">Flick</button>
+            <button class="btn small ghost" type="button" @click="reset">Reset</button>
+            <small v-if="!flicked">Slide the striker, then flick it.</small>
+            <small v-else>{{ pocketed }} {{ pocketed === 1 ? 'coin' : 'coins' }} pocketed on that break.</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="marq" aria-hidden="true">
+        <div class="trk"><span v-for="n in 2" :key="n"><b v-for="t in ticker" :key="t">{{ t }}</b></span></div>
+      </div>
+
+      <section id="how">
+        <h2>How the club works</h2>
+        <p class="sub">Three things happen at Pocket Club: you play, you compete, and you get better.</p>
+        <div class="grid3">
+          <div class="tile" v-for="p in perks" :key="p.t">
+            <div class="ic">{{ p.i }}</div>
+            <h3>{{ p.t }}</h3>
+            <p>{{ p.d }}</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Sample photos</h2>
+        <p class="sub">Illustrations of the boards you will play on.</p>
+        <div class="grid3 shots">
+          <figure v-for="s in shots" :key="s.t">
+            <div class="sh"><svg viewBox="0 0 400 400" role="img" :aria-label="s.t" v-html="s.h"></svg></div>
+            <figcaption>{{ s.t }}</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section id="register">
+        <h2>Register for the club</h2>
+        <p class="sub">Three short steps. Takes about two minutes.</p>
+        <div class="reg">
+          <div v-if="done" class="ticket">
+            <div class="fall" aria-hidden="true"><i v-for="(c,i) in fall" :key="i" :style="c"></i></div>
+            <h3>You are in, {{ done.name }}.</h3>
+            <p>Payment of ₹{{ fee }} is being verified. Keep this booking ID for play night.</p>
+            <code>{{ done.id }}</code>
+          </div>
+          <div v-else class="card">
+            <div class="steps">
+              <div v-for="(s,i) in steps" :key="s" :class="{on:i===step,dn:i<step}">{{ s }}</div>
+            </div>
+            <form novalidate @submit.prevent="step<2?next():submit()">
+              <template v-if="step===0">
+                <div class="row">
+                  <label>Full name<input v-model="f.name" autocomplete="name" :class="{bad:bad==='name'}"></label>
+                  <label>Phone number<input v-model="f.phone" type="tel" inputmode="numeric" autocomplete="tel"
+                      placeholder="10-digit mobile" :class="{bad:bad==='phone'}"></label>
+                </div>
+                <div class="row">
+                  <label>Email (optional)<input v-model="f.email" type="email" autocomplete="email"
+                      :class="{bad:bad==='email'}"></label>
+                  <label>City<input v-model="f.city" autocomplete="address-level2" :class="{bad:bad==='city'}"></label>
+                </div>
+                <label>Pincode<input v-model="f.pincode" inputmode="numeric" maxlength="6" autocomplete="postal-code"
+                    placeholder="6-digit pincode" :class="{bad:bad==='pincode'}"></label>
+              </template>
+              <template v-if="step===1">
+                <div class="cats">
+                  <label class="cat" :class="{sel:f.cat==='singles'}"><input type="radio" value="singles"
+                      v-model="f.cat"><b>₹199</b>Singles<br><span>One player. Annual membership and tournament
+                      entry.</span></label>
+                  <label class="cat" :class="{sel:f.cat==='doubles'}"><input type="radio" value="doubles"
+                      v-model="f.cat"><b>₹349</b>Doubles<br><span>One pair. Price is per pair, split it however you
+                      like.</span></label>
+                </div>
+                <label v-if="f.cat==='doubles'">Partner name<input v-model="f.partner"
+                    :class="{bad:bad==='partner'}"></label>
+                <label>Your level
+                  <select v-model="f.level">
+                    <option>Beginner</option>
+                    <option>Intermediate</option>
+                    <option>Advanced</option>
+                  </select>
+                </label>
+              </template>
+
+              <div v-if="step===2" class="pay">
+                <p style="margin:0">
+                  Pay <b>₹{{ fee }}</b> to <b>Pocket Club</b> by UPI.
+                </p>
+
+                <div class="qr-payment">
+                  <img src="payment-qr.jpeg" alt="Pocket Club UPI payment QR code" class="payment-qr">
+
+                  <p>Scan this QR code with any UPI app to pay.</p>
+                  <p><b>UPI ID:</b> 8102493323@ptaxis</p>
+                  <small>
+                    Payment karne ke baad Confirm registration par click karein.
+                  </small>
+                </div>
+              </div>
+
+              <div v-if="err" class="msg err" role="alert">{{ err }}</div>
+              <div class="actions">
+                <button v-if="step>0" type="button" class="btn ghost" @click="back">Back</button>
+                <span v-else></span>
+                <button v-if="step<2" type="submit" class="btn">Continue</button>
+                <button v-else type="submit" class="btn" :disabled="saving">{{ saving ? 'Saving…' : 'Confirm
+                  registration' }}</button>
+              </div>
+              <p class="hint">Confirmation comes on WhatsApp within 24 hours of payment.</p>
+            </form>
+          </div>
+          <aside class="card sum" v-if="!done">
+            <h3>Your registration</h3>
+            <dl>
+              <dt>Name</dt>
+              <dd>{{ f.name || '–' }}</dd>
+              <dt>City</dt>
+              <dd>{{ f.city || '–' }}</dd>
+              <dt>Category</dt>
+              <dd>{{ f.cat === 'doubles' ? 'Doubles' : 'Singles' }}</dd>
+              <dt v-if="f.cat==='doubles'">Partner</dt>
+              <dd v-if="f.cat==='doubles'">{{ f.partner || '–' }}</dd>
+              <dt>Level</dt>
+              <dd>{{ f.level }}</dd>
+            </dl>
+            <div class="total"><span>Total</span><b>₹{{ fee }}</b></div>
+          </aside>
+        </div>
+      </section>
+
+      <section id="faq">
+        <h2>Questions</h2>
+        <details v-for="q in faqs" :key="q.q">
+          <summary>{{ q.q }}</summary>
+          <p>{{ q.a }}</p>
+        </details>
+      </section>
+
+      <footer>Pocket Club · Carrom only. Fees, schedule and UPI ID are sample values. Replace them before going live.
+      </footer>
+    </div>
+  </div>
+  <noscript>This page needs JavaScript.</noscript>
+  <script src="https://cdn.jsdelivr.net/npm/vue@3.4.38/dist/vue.global.prod.js"></script>
+  <script src="script.js"></script>
+</body>
+
+</html>
